@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage User Permissions{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Manage User Permissions</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="user-select">Select User</label>
+            <select id="user-select" name="user_id" class="form-control" required>
+                <option value="" disabled selected>Select a user</option>
+                {% for user in users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="permissions-table">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        {% for action in actions %}
+                        <th>{{ action|title }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feature, perms in permissions.items %}
+                    <tr>
+                        <td>{{ feature|title }}</td>
+                        {% for action, perm_id in perms.items %}
+                        <td>
+                            <input type="checkbox" class="permission-checkbox" name="permissions" value="{{ perm_id }}" />
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-success">Save Permissions</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userSelect = document.getElementById('user-select');
+    const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
+    const permissionsTable = document.getElementById('permissions-table');
+
+    userSelect.addEventListener('change', function() {
+        const userId = this.value;
+        if (userId) {
+            fetch(`/get_user_permissions/${userId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    permissionCheckboxes.forEach(checkbox => {
+                        checkbox.checked = data.permissions.includes(parseInt(checkbox.value));
+                    });
+                });
+        } else {
+            permissionCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

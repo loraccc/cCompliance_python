@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if section %}Edit{% else %}Add{% endif %} Section{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">{% if section %}Edit{% else %}Add{% endif %} Section</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">{% if section %}Edit{% else %}Add{% endif %} Section</h3>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="form-group">
+                            {{ section_form.name.label_tag }}
+                            {{ section_form.name }}
+                        </div>
+                        <div class="form-group">
+                            {{ section_form.description.label_tag }}
+                            {{ section_form.description }}
+                        </div>
+                        <h3>Select Primary Category</h3>
+                        <div class="form-group">
+                            <select class="form-control" name="primary_category">
+                                <option value="">Select a primary category</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if category.id == section.category_id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- <h3>Select Additional Categories</h3>
+                        <div class="form-group">
+                            <select class="form-control" name="categories" multiple>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if category.id in selected_category_ids %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div> -->
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">{% if section %}Update{% else %}Add{% endif %} Section</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

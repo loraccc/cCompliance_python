@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if category %}Edit{% else %}Add{% endif %} Category{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{% if category %}Edit{% else %}Add{% endif %} Category</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ category_form.as_p }}
+
+        <h3>Select Existing Sections</h3>
+        <div>
+            <label for="sections">Existing Sections:</label>
+            <select name="sections" id="sections" class="form-control" multiple>
+                {% for section in sections %}
+                    <option value="{{ section.id }}" {% if category and section in category.sections.all %}section{% endif %}>
+                        {{ section.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">{% if category %}Update{% else %}Add{% endif %} Category</button>
+    </form>
+</div>
+
+<pre>{{ sections }}</pre> 
+{% endblock %}

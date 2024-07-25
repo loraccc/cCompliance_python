@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Role Form{% endblock %}
+
+{% block page_title %}Role Form{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Create/Update Role</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+                {{ form.name.errors }}
+            </div>
+            <div class="form-group">
+                <label>Permissions</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="select-all" /> Select All</label>
+                    <div>
+                        {% for permission in form.permissions.field.queryset %}
+                            <label class="checkbox-inline">
+                                <input type="checkbox" class="permission-checkbox" name="permissions" value="{{ permission.id }}"
+                                {% if permission in form.initial.permissions %} checked {% endif %}/> {{ permission.name }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {{ form.permissions.errors }}
+            </div>
+            <button type="submit" class="btn btn-success">Save</button>
+        </form>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'role_list' %}" class="btn btn-primary">Back to Role List</a>
+    </div>
+</div>
+
+<style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .checkbox-inline {
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('select-all');
+        const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
+
+        selectAllCheckbox.addEventListener('change', function() {
+            permissionCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        });
+
+        permissionCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const allChecked = Array.from(permissionCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            });
+        });
+    });
+</script>
+{% endblock %}

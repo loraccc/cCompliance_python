@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Manage User Permissions</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Add Permission</button>
+    </form>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>View Dashboard</th>
+                <th>Edit Dashboard</th>
+                <th>View Menu</th>
+                <th>Edit Menu</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for permission in permissions %}
+            <tr>
+                <td>{{ permission.user.username }}</td>
+                <td>{{ permission.can_view_dashboard }}</td>
+                <td>{{ permission.can_edit_dashboard }}</td>
+                <td>{{ permission.can_view_menu }}</td>
+                <td>{{ permission.can_edit_menu }}</td>
+                <td>
+                    <a href="{% url 'update_permission' permission.id %}" class="btn btn-sm btn-warning">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

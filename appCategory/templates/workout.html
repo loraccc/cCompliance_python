@@ -1,0 +1,66 @@
+<!-- templates/workout.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Personalized Workout Plan</h2>
+    <form id="workoutForm">
+        <div class="mb-3">
+            <label for="height" class="form-label">Height (cm)</label>
+            <input type="number" class="form-control" id="height" placeholder="Enter your height">
+        </div>
+        <div class="mb-3">
+            <label for="weight" class="form-label">Weight (kg)</label>
+            <input type="number" class="form-control" id="weight" placeholder="Enter your weight">
+        </div>
+        <button type="submit" class="btn btn-primary">Get Workout Plan</button>
+    </form>
+
+    <!-- Modal -->
+    <div class="modal fade" id="workoutModal" tabindex="-1" aria-labelledby="workoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="workoutModalLabel">Workout Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="responseText">
+                    <!-- Workout plan will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('workoutForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const height = document.getElementById('height').value;
+    const weight = document.getElementById('weight').value;
+
+    fetch('{% url "chat_with_gpt" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            message: `I am ${height} cm tall and weigh ${weight} kg. Please provide me with a workout plan.`
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('responseText').innerText = data.message;
+        var workoutModal = new bootstrap.Modal(document.getElementById('workoutModal'), {});
+        workoutModal.show();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+</script>
+{% endblock %}

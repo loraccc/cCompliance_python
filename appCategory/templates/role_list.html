@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Role List{% endblock %}
+
+{% block page_title %}Role List{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">User</h3>
+        <div class="card-tools">
+            <a href="{% url 'role_create' %}" class="btn btn-success btn-sm">Create Role</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>   
+                    <th>Name</th>
+                    <th>All</th>
+                    <th>View</th>
+                    <th>Add</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for role in roles %}
+                <tr>
+                    <td>{{ role.id }}</td>
+                    <td>{{ role.name }}</td>
+                    <td><input type="checkbox" class="select-all" data-role-id="{{ role.id }}"></td>
+                    <td><input type="checkbox" class="permission-checkbox" data-role-id="{{ role.id }}" value="view" {% if 'view' in role.permissions.all %}checked{% endif %}></td>
+                    <td><input type="checkbox" class="permission-checkbox" data-role-id="{{ role.id }}" value="add" {% if 'add' in role.permissions.all %}checked{% endif %}></td>
+                    <td><input type="checkbox" class="permission-checkbox" data-role-id="{{ role.id }}" value="edit" {% if 'edit' in role.permissions.all %}checked{% endif %}></td>
+                    <td><input type="checkbox" class="permission-checkbox" data-role-id="{{ role.id }}" value="delete" {% if 'delete' in role.permissions.all %}checked{% endif %}></td>
+                    <td>
+                        <a href="{% url 'role_update' role.pk %}" class="btn btn-primary btn-sm">Edit</a>
+                        <form method="post" action="{% url 'role_delete' role.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.select-all').forEach(function(selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                var roleId = this.dataset.roleId;
+                var checkboxes = document.querySelectorAll('.permission-checkbox[data-role-id="' + roleId + '"]');
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+        });
+
+        document.querySelectorAll('.permission-checkbox').forEach(function(permissionCheckbox) {
+            permissionCheckbox.addEventListener('change', function() {
+                var roleId = this.dataset.roleId;
+                var allChecked = true;
+                var checkboxes = document.querySelectorAll('.permission-checkbox[data-role-id="' + roleId + '"]');
+                checkboxes.forEach(function(checkbox) {
+                    if (!checkbox.checked) {
+                        allChecked = false;
+                    }
+                });
+                document.querySelector('.select-all[data-role-id="' + roleId + '"]').checked = allChecked;
+            });
+        });
+    });
+</script>
+{% endblock %}
