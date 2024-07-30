@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .models import CustomUser, Role ,Category
+from .models import CustomUser, Role ,Category ,Feature
 from appSection.models import Section
 
 from .forms import (CustomUserCreationForm,
@@ -29,27 +29,21 @@ from django.views.decorators.csrf import csrf_exempt
 def list_users(request):
     users = CustomUser.objects.all()
     roles = Role.objects.all()
-    features = ['dashboard', 'menu',]
-    actions = ['view', 'add', 'delete', 'change',]
-    app_label = 'appCategory'  
-    permissions = {}
+    features = Feature.objects.all()  
+    actions = ['view', 'add', 'delete', 'change']
+    permissions = []
 
     for feature in features:
+        feature_permissions = {'feature': feature.name, 'actions': []}
         for action in actions:
-            perm_name = f'{action}_{feature}'
+            perm_name = f'{action}_{feature.name}'
             try:
-                content_type = ContentType.objects.get(app_label=app_label, model='customuser')
-                perm = Permission.objects.get(codename=perm_name, content_type=content_type)
-                if feature not in permissions:
-                    permissions[feature] = {}
-                permissions[feature][action] = perm.id
-                print(f"Fetched permission: {perm_name} with ID: {perm.id}")  # Debugging line
+                content_type = ContentType.objects.get_for_model(feature)
+                perm, created = Permission.objects.get_or_create(codename=perm_name, content_type=content_type)
+                feature_permissions['actions'].append({'action': action, 'perm_id': perm.id})
             except ContentType.DoesNotExist:
-                print(f"ContentType for feature '{feature}' in app '{app_label}' does not exist.")
                 continue
-            except Permission.DoesNotExist:
-                print(f"Permission '{perm_name}' does not exist.")
-                continue
+        permissions.append(feature_permissions)
 
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
@@ -57,20 +51,22 @@ def list_users(request):
         selected_roles = request.POST.getlist('roles')
         user = get_object_or_404(CustomUser, id=user_id)
 
+        # Clear existing permissions and roles
         user.user_permissions.clear()
         user.roles.clear()
 
+        # Add selected permissions
         for perm_id in selected_permissions:
-            print(f"Adding permission ID: {perm_id}") 
             perm = get_object_or_404(Permission, id=perm_id)
             user.user_permissions.add(perm)
 
+        # Add selected roles and their associated permissions
         for role_id in selected_roles:
             role = get_object_or_404(Role, id=role_id)
             user.roles.add(role)
-
             for perm in role.permissions.all():
                 user.user_permissions.add(perm)
+
         messages.success(request, f"Roles and permissions have been successfully updated for {user.username}.")
         return redirect('list_users')
 
@@ -82,12 +78,21 @@ def list_users(request):
         'actions': actions
     })
 
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def get_user_permissions(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user_permissions = user.user_permissions.values_list('id', flat=True)
+    return JsonResponse({'permissions': list(user_permissions)})
+
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 @permission_required('Compliance_app.view_category', raise_exception=True)
 def category_list(request):
     categories = Category.objects.all()
-    paginator = Paginator(categories, 2)  # Show 2 categories per page
+    paginator = Paginator(categories, 3) # Show the number of categories accordingly
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -96,6 +101,8 @@ def category_list(request):
         'page_obj': page_obj,
         'categories': page_obj.object_list,
     })
+
+
 
 def category_create(request, pk=None):
     category = None
@@ -125,6 +132,7 @@ def category_create(request, pk=None):
         'category': category,
     })
 
+
 @login_required
 @permission_required('Compliance_app.change_category', raise_exception=True)
 def category_update(request, pk):
@@ -150,6 +158,8 @@ def category_update(request, pk):
         'category_form': category_form,
         'section':section,
     })
+
+
 @login_required
 @permission_required('Compliance_app.delete_category', raise_exception=True)
 def category_delete(request, pk):
@@ -161,9 +171,12 @@ def category_delete(request, pk):
         return redirect('category_list')
     return render(request, 'category_confirm_delete.html', {'category': category})
 
+
+
 def section_list(request):
     sections = Section.objects.all()
     return render(request,'section_list.html', {'sections': sections})
+
 
 
 def category_section_view(request):
@@ -181,7 +194,7 @@ def category_section_view(request):
     if 'section_id' in request.POST:
         selected_section_id = request.POST.get('section_id')
         if selected_section_id:
-            selected_section = Section.objects.get(id=selected_section_id)
+            selected_section = Section.objects.get(id=selected_section_id)          
 
     context = {
         'categories': categories,
@@ -200,6 +213,8 @@ def get_user_permissions(request, user_id):
     user_permissions = user.user_permissions.values_list('id', flat=True)
     return JsonResponse({'permissions': list(user_permissions)})
 
+
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def user_create(request):
@@ -214,6 +229,7 @@ def user_create(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'user_form.html', {'form': form})
+
 
 
 @login_required
@@ -280,9 +296,10 @@ def role_create(request):
         form = RoleForm()
     return render(request, 'role_form.html', {'form': form})
 
+
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
-
 def role_update(request, pk):
     role = get_object_or_404(Role, pk=pk)
     if request.method == 'POST':
@@ -293,6 +310,7 @@ def role_update(request, pk):
     else:
         form = RoleForm(instance=role)
     return render(request, 'role_form.html', {'form': form})
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -310,6 +328,7 @@ def send_registration_email(user_email):
     recipient_list = [user_email]
     send_mail(subject, message, email_from, recipient_list)
 
+
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -325,6 +344,7 @@ def register(request):
         form = CustomUserCreationForm()
 
     return render(request, 'user/register.html', {'form': form})
+
 
 def user_login(request):
     if request.method == "POST":
@@ -347,14 +367,18 @@ def user_login(request):
         form = AuthenticationForm()
     return render(request, 'user/login.html', {'form': form})
 
+
 @login_required
 def user_logout(request):
     logout(request)
     return redirect('login')
 
+
 # @login_required
 def dashboard(request):
     return render(request, 'dashboard.html')
+
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

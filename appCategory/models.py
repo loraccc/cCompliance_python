@@ -9,7 +9,7 @@ class Role(models.Model):
         return self.name
 
 class CustomUser(AbstractUser):
-    roles = models.ManyToManyField(Role, related_name='users')
+    roles = models.ManyToManyField(Role, related_name='users', blank=True)
     groups = models.ManyToManyField(Group, related_name='custom_user_groups', blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name='custom_user_permissions', blank=True)
 
@@ -32,5 +32,12 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     sections = models.ManyToManyField('appSection.Section', related_name='many_categories', blank=True)
+
     def __str__(self):
+        return self.name
+
+class Feature(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self) -> str:
         return self.name

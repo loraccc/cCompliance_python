@@ -15,7 +15,7 @@ urlpatterns = [
 
     path('list_users/', views.list_users, name='list_users'), 
 
-    path('categories/', category_list, name='categories'),
+    path('categories/', category_list, name='category_list'),
     path('categories/create/', category_create, name='category_create'),
     path('categories/update/<int:pk>/', category_update, name='category_update'),
     path('categories/delete/<int:pk>/', category_delete, name='category_delete'),

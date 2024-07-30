@@ -27,12 +27,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for feature, perms in permissions.items %}
+                    {% for perm in permissions %}
                     <tr>
-                        <td>{{ feature|title }}</td>
-                        {% for action, perm_id in perms.items %}
+                        <td>{{ perm.feature|title }}</td>
+                        {% for action in actions %}
                         <td>
-                            <input type="checkbox" class="permission-checkbox" name="permissions" value="{{ perm_id }}" />
+                            {% for act in perm.actions %}
+                                {% if act.action == action %}
+                                    <input type="checkbox" class="permission-checkbox" name="permissions" value="{{ act.perm_id }}" />
+                                {% endif %}
+                            {% endfor %}
                         </td>
                         {% endfor %}
                     </tr>
@@ -48,7 +52,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const userSelect = document.getElementById('user-select');
     const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
-    const permissionsTable = document.getElementById('permissions-table');
 
     userSelect.addEventListener('change', function() {
         const userId = this.value;

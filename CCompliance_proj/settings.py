@@ -16,6 +16,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'appCategory.CustomUser'
+
 
 # Application definition
 
@@ -116,9 +118,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-EMAIL_HOST = "smtp.gmail.com" # google mail server
-EMAIL_PORT = 587 # TLS Port number
-EMAIL_USE_TLS = True # protocol
+EMAIL_HOST = "smtp.gmail.com" #This is the google mail server
+EMAIL_PORT = 587 #This is the TLS Port number
+EMAIL_USE_TLS = True #This is protocol
 EMAIL_HOST_USER = "carolacharya1@gmail.com" # gmail 
 EMAIL_HOST_PASSWORD = "tgbs xxbu jgod qqcp "
 
