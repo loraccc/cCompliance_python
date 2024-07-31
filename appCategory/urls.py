@@ -3,7 +3,7 @@ from django.urls import path
 
 from . import views
 
-from .views import (list_users, user_create, user_update, user_delete,
+from .views import (list_users,get_user_permissions, user_create, user_update, user_delete,
                      role_list, role_create, role_update, role_delete,
                        register, user_login, user_logout,
                         admin_dashboard, dashboard ,
@@ -14,6 +14,10 @@ from .views import (list_users, user_create, user_update, user_delete,
 urlpatterns = [
 
     path('list_users/', views.list_users, name='list_users'), 
+
+    # path('manage_permissions/', manage_permissions, name='manage_permissions'),
+
+    path('get_user_permissions/<int:user_id>/', get_user_permissions, name='get_user_permissions'),
 
     path('categories/', category_list, name='categories'),
     path('categories/create/', category_create, name='category_create'),

@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .models import CustomUser, Role ,Category ,Feature
+from .models import CustomUser, Role ,Category 
 from appSection.models import Section
 
 from .forms import (CustomUserCreationForm,
@@ -29,47 +29,45 @@ from django.views.decorators.csrf import csrf_exempt
 def list_users(request):
     users = CustomUser.objects.all()
     roles = Role.objects.all()
-    features = Feature.objects.all()  
+    features = ['dashboard', 'menu']
     actions = ['view', 'add', 'delete', 'change']
-    permissions = []
-
+    app_label = 'appCategory'  
+    permissions = {}
     for feature in features:
-        feature_permissions = {'feature': feature.name, 'actions': []}
         for action in actions:
-            perm_name = f'{action}_{feature.name}'
+            perm_name = f'{action}_{feature}'
             try:
-                content_type = ContentType.objects.get_for_model(feature)
-                perm, created = Permission.objects.get_or_create(codename=perm_name, content_type=content_type)
-                feature_permissions['actions'].append({'action': action, 'perm_id': perm.id})
+                content_type = ContentType.objects.get(app_label=app_label, model='customuser')
+                perm = Permission.objects.get(codename=perm_name, content_type=content_type)
+                if feature not in permissions:
+                    permissions[feature] = {}
+                permissions[feature][action] = perm.id
+                print(f"Fetched permission: {perm_name} with ID: {perm.id}")  # Debugging line
             except ContentType.DoesNotExist:
+                print(f"ContentType for feature '{feature}' in app '{app_label}' does not exist.")
                 continue
-        permissions.append(feature_permissions)
-
+            except Permission.DoesNotExist:
+                print(f"Permission '{perm_name}' does not exist.")
+                continue
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         selected_permissions = request.POST.getlist('permissions')
         selected_roles = request.POST.getlist('roles')
         user = get_object_or_404(CustomUser, id=user_id)
-
-        # Clear existing permissions and roles
         user.user_permissions.clear()
         user.roles.clear()
-
-        # Add selected permissions
         for perm_id in selected_permissions:
+            print(f"Adding permission ID: {perm_id}") 
             perm = get_object_or_404(Permission, id=perm_id)
             user.user_permissions.add(perm)
-
-        # Add selected roles and their associated permissions
         for role_id in selected_roles:
             role = get_object_or_404(Role, id=role_id)
             user.roles.add(role)
+            
             for perm in role.permissions.all():
                 user.user_permissions.add(perm)
-
         messages.success(request, f"Roles and permissions have been successfully updated for {user.username}.")
         return redirect('list_users')
-
     return render(request, 'list_users.html', {
         'users': users,
         'roles': roles,
@@ -77,19 +75,54 @@ def list_users(request):
         'features': features,
         'actions': actions
     })
+# def manage_permissions(request):
+#     users = CustomUser.objects.all()
+#     features = Feature.objects.all()
+#     actions = ['view', 'add', 'change', 'delete']
+#     permissions = []
+
+#     for feature in features:
+#         feature_permissions = {'feature': feature.name, 'actions': []}
+#         for action in actions:
+#             perm_name = f'{action}_{feature.name}'
+#             try:
+#                 content_type = ContentType.objects.get_for_model(feature)
+#                 perm, created = Permission.objects.get_or_create(codename=perm_name, content_type=content_type)
+#                 feature_permissions['actions'].append({'action': action, 'perm_id': perm.id})
+#             except ContentType.DoesNotExist:
+#                 continue
+#         permissions.append(feature_permissions)
+
+#     if request.method == 'POST':
+#         user_id = request.POST.get('user_id')
+#         selected_permissions = request.POST.getlist('permissions')
+#         user = get_object_or_404(CustomUser, id=user_id)
+
+#         user.user_permissions.set(selected_permissions)
+#         user.save()
+#         messages.success(request, f"Permissions have been successfully updated for {user.username}.")
+#         return redirect('manage_permissions')
+
+#     context = {
+#         'users': users,
+#         'permissions': permissions,
+#         'actions': actions,
+#     }
+#     return render(request, 'manage_permissions.html', context)
 
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
+
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
 def get_user_permissions(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user_permissions = user.user_permissions.values_list('id', flat=True)
     return JsonResponse({'permissions': list(user_permissions)})
 
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-@permission_required('Compliance_app.view_category', raise_exception=True)
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
+@permission_required('appCategory.view_category', raise_exception=True)
 def category_list(request):
     categories = Category.objects.all()
     paginator = Paginator(categories, 3) # Show the number of categories accordingly
@@ -134,7 +167,7 @@ def category_create(request, pk=None):
 
 
 @login_required
-@permission_required('Compliance_app.change_category', raise_exception=True)
+@permission_required('appCategory.change_category', raise_exception=True)
 def category_update(request, pk):
     section=Section.objects.all()
     category = get_object_or_404(Category, pk=pk)
@@ -161,14 +194,14 @@ def category_update(request, pk):
 
 
 @login_required
-@permission_required('Compliance_app.delete_category', raise_exception=True)
+@permission_required('appCategory.delete_category', raise_exception=True)
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     # section=Section.objects.all()
     if request.method == 'POST':
         category.delete()
         messages.success(request, "Category deleted successfully.")
-        return redirect('category_list')
+        return redirect('categories')
     return render(request, 'category_confirm_delete.html', {'category': category})
 
 

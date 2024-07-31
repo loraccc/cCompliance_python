@@ -36,8 +36,8 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-class Feature(models.Model):
-    name = models.CharField(max_length=100)
+# class Feature(models.Model):
+#     name = models.CharField(max_length=100)
 
-    def __str__(self) -> str:
-        return self.name
+#     def __str__(self) -> str:
+#         return self.name
