@@ -47,5 +47,5 @@ def section_delete(request, pk):
         section.delete()
         messages.success(request, "Section deleted successfully.")
         return redirect('section_list')
-    return render(request, 'section_confirm_delete.html', {'section': section})
+    return render(request, 'section_list.html', {'section': section})
 

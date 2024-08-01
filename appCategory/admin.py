@@ -17,7 +17,6 @@ admin.site.register(Role)
 # admin.site.register(CustomUser)
 
 
-
 class CustomUserAdmin(BaseUserAdmin):
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff']
     search_fields = ['username', 'email', 'first_name', 'last_name']
