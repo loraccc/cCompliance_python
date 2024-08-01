@@ -1,5 +1,5 @@
 from django.contrib import admin
-from appCategory.models import Category,CustomUser,Role
+from appCategory.models import Category,CustomUser,Role,Document
 from appSection.models import Section 
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 class CategoryAdmin(admin.ModelAdmin):
@@ -14,6 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 # admin.site.register(Feature)
 admin.site.register(Role)
+admin.site.register(Document)
 # admin.site.register(CustomUser)
 
 

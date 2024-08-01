@@ -6,7 +6,7 @@ from . import views
 from .views import (list_users,get_user_permissions, user_create, user_update, user_delete,
                      role_list, role_create, role_update, role_delete,
                        register, user_login, user_logout,
-                        admin_dashboard, dashboard ,
+                        admin_dashboard, dashboard ,document,
                         category_list,category_delete,category_create,category_update,
                         category_section_view, chat_with_gpt,workout_view
                         )
@@ -45,6 +45,7 @@ urlpatterns = [
 
 
     path('', dashboard, name='dashboard'),
+    path('documents', document, name='documents'),
     path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
 
 

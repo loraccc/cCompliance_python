@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .models import CustomUser, Role ,Category 
+from .models import CustomUser, Role ,Category ,Document
 from appSection.models import Section
 
 from .forms import (CustomUserCreationForm,
@@ -410,6 +410,12 @@ def user_logout(request):
 # @login_required
 def dashboard(request):
     return render(request, 'dashboard.html')
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def document(request):
+    documents=Document.objects.all()
+    return render(request, 'document_list.html',{'documents':documents})
 
 
 

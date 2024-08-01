@@ -28,12 +28,25 @@ class CustomUser(AbstractUser):
             ('change_menu', 'Can change menu'),
         ]
 
+from django.utils import timezone
+from django.contrib.auth.models import User
+from datetime import timedelta
+
 class Document(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to='documents/')
     uploaded_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='uploaded_documents')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     version = models.IntegerField(default=1)
+    expiration_date = models.DateTimeField(default=timezone.now() + timedelta(days=60))
+
+    def save(self, *args, **kwargs):
+        if not self.expiration_date:
+            self.expiration_date = self.uploaded_at + timedelta(days=60)
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return timezone.now() > self.expiration_date
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
