@@ -23,11 +23,12 @@
                     <label><input type="checkbox" id="select-all" /> Select All</label>
                     <div>
                         {% for permission in form.permissions.field.queryset %}
-                            <label class="checkbox-inline">
-                                <input type="checkbox" class="permission-checkbox" name="permissions" value="{{ permission.id }}"
-                                {% if permission in form.initial.permissions %} checked {% endif %}/> {{ permission.name }}
-                            </label>
-                        {% endfor %}
+                        <label class="checkbox-inline">
+                            {{ forloop.counter }}. <input type="checkbox" class="permission-checkbox" name="permissions" value="{{ permission.id }}"
+                            {% if permission in form.initial.permissions %} checked {% endif %}/> {{ permission.name }}
+                        </label>
+                        {% if not forloop.last %}<br>{% endif %}
+                    {% endfor %}
                     </div>
                 </div>
                 {{ form.permissions.errors }}

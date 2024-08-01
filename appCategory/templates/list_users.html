@@ -77,7 +77,8 @@
                 </td>
                 <td>
                     {% for perm in user.user_permissions.all %}
-                        {{ perm.name }}{% if not forloop.last %}, {% endif %}
+                        {{ forloop.counter }}. {{ perm.name }}
+                        {% if not forloop.last %}<br>{% endif %}
                     {% endfor %}
                 </td>
             </tr>

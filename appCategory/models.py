@@ -28,6 +28,13 @@ class CustomUser(AbstractUser):
             ('change_menu', 'Can change menu'),
         ]
 
+class Document(models.Model):
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to='documents/')
+    uploaded_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='uploaded_documents')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    version = models.IntegerField(default=1)
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
