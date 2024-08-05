@@ -28,6 +28,7 @@ urlpatterns = [
     path('category-section/', category_section_view, name='category_section'),
 
     path('get_permissions/<int:user_id>/', views.get_user_permissions, name='get_user_permissions'),
+    
     path('users/create/', user_create, name='user_create'),
     path('users/update/<int:pk>/', user_update, name='user_update'),
     path('users/delete/<int:pk>/', user_delete, name='user_delete'),
@@ -45,7 +46,10 @@ urlpatterns = [
 
 
     path('', dashboard, name='dashboard'),
+
     path('documents', document, name='documents'),
+    path('documents/renew/<int:document_id>/', views.renew_document, name='renew_document'),
+
     path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
 
 

@@ -9,6 +9,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.core.mail import send_mail
+from django.utils import timezone
+
+from datetime import timedelta
 
 from .models import CustomUser, Role ,Category ,Document
 from appSection.models import Section
@@ -16,7 +19,6 @@ from appSection.models import Section
 from .forms import (CustomUserCreationForm,
                      CustomUserChangeForm, RoleForm 
                      ,CategoryForm,inlineformset_factory)
-
 from openai import OpenAI
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -152,7 +154,7 @@ def category_create(request, pk=None):
             existing_section_ids = request.POST.getlist('sections')
             category.sections.set(existing_section_ids)
 
-            return redirect('category_list')
+            return redirect('categories')
     else:
         category_form = CategoryForm(instance=category)
 
@@ -184,7 +186,7 @@ def category_update(request, pk):
                     description=new_section_description,
                     category=category
                 )
-            return redirect('category_list')
+            return redirect('categories')
     else:
         category_form = CategoryForm(instance=category)
     return render(request, 'category_form.html', {
@@ -412,10 +414,35 @@ def dashboard(request):
     return render(request, 'dashboard.html')
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser, login_url='dashboard')
 def document(request):
     documents=Document.objects.all()
     return render(request, 'document_list.html',{'documents':documents})
+
+
+@login_required
+def renew_document(request, document_id):
+    # Retrieve the document by its ID, or return a 404 error if not found
+    document = get_object_or_404(Document, id=document_id)
+    
+    # Check if the document is expired
+    if document.is_expired():
+        # Update the expiration date to extend it by 60 days
+        document.expiration_date = timezone.now() + timedelta(days=60)
+        # Increment the document's version to indicate it's been renewed
+        document.version += 1
+        # Save the changes to the database
+        document.save()
+        
+        # Add a success message for the user
+        messages.success(request, 'Document has been successfully renewed.')
+    else:
+        # If the document is not expired, inform the user accordingly
+        messages.info(request, 'Document is not expired and does not need renewal.')
+    
+    # Redirect the user back to a relevant page, such as the document detail view
+    return redirect('document_detail', document_id=document.id)
+
 
 
 
